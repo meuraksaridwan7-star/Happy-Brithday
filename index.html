@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Ulang Tahun</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-secondary: #12121a;
+            --fg: #f5f0e8;
+            --muted: #8a8a9a;
+            --accent: #e8a857;
+            --accent-rose: #d4a5a5;
+            --card: rgba(18, 18, 26, 0.85);
+            --border: rgba(232, 168, 87, 0.2);
+            --glow: rgba(232, 168, 87, 0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: var(--bg);
+            color: var(--fg);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .glass-card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+        }
+        
+        .accent-glow {
+            box-shadow: 0 0 60px var(--glow), 0 0 120px rgba(232, 168, 87, 0.2);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent) 0%, #f5d89a 50%, var(--accent-rose) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .poem-line {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: revealLine 0.8s ease forwards;
+        }
+        
+        @keyframes revealLine {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px var(--glow); }
+            50% { box-shadow: 0 0 40px var(--glow), 0 0 60px rgba(232, 168, 87, 0.3); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .shimmer-text {
+            background: linear-gradient(90deg, var(--accent) 0%, #fff 50%, var(--accent) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        .music-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+        }
+        
+        .music-bar {
+            width: 4px;
+            background: linear-gradient(to top, var(--accent), var(--accent-rose));
+            border-radius: 2px;
+            animation: musicBounce 0.5s ease-in-out infinite alternate;
+        }
+        
+        .music-bar:nth-child(1) { animation-delay: 0s; height: 20px; }
+        .music-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+        .music-bar:nth-child(3) { animation-delay: 0.2s; height: 15px; }
+        .music-bar:nth-child(4) { animation-delay: 0.3s; height: 35px; }
+        .music-bar:nth-child(5) { animation-delay: 0.4s; height: 25px; }
+        
+        @keyframes musicBounce {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1); }
+        }
+        
+        .paused .music-bar {
+            animation-play-state: paused;
+        }
+        
+        .btn-elegant {
+            background: linear-gradient(135deg, var(--accent) 0%, #c4923d 100%);
+            color: var(--bg);
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .btn-elegant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(232, 168, 87, 0.4);
+        }
+        
+        .btn-elegant:active {
+            transform: translateY(0);
+        }
+        
+        .lang-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--fg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+        
+        .datetime-display {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .pantun-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pantun-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-rose), var(--accent));
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(232, 168, 87, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .ornament {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .poem-text {
+                font-size: 1.1rem !important;
+                line-height: 1.8 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="content-wrapper">
+        <!-- Header with DateTime -->
+        <header class="fixed top-0 left-0 right-0 z-50 p-4">
+            <div class="glass-card max-w-4xl mx-auto px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+                <div class="datetime-display text-sm text-[var(--muted)]" id="datetime">
+                    <span id="date-display"></span>
+                    <span class="mx-2">|</span>
+                    <span id="time-display"></span>
+                </div>
+                <div class="flex gap-2">
+                    <button class="lang-btn active" data-lang="id">ID</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="jp">JP</button>
+                    <button class="lang-btn" data-lang="de">DE</button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center px-4 pt-24 pb-12">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="font-display text-6xl md:text-8xl font-black mb-6 text-gradient" data-translate="title">
+                    Selamat Ulang Tahun
+                </h1>
+                <p class="text-xl md:text-2xl text-[var(--muted)] mb-8" data-translate="subtitle">
+                    Sebuah persembahan kata untuk jiwa yang tercinta
+                </p>
+                
+                <!-- Music Player -->
+                <div class="glass-card p-6 max-w-md mx-auto mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="music-visualizer paused" id="visualizer">
+                                <div class="music-bar"></div>
+                                <div class="music-bar"></div>
+                                <div class="music-bar"></div>
+                                <div class="music-bar"></div>
+                                <div class="music-bar"></div>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-sm text-[var(--muted)]" data-translate="nowPlaying">Now Playing</p>
+                                <p class="font-display text-lg" id="song-name" data-translate="uploadSong">Upload Lagu MP3</p>
+                            </div>
+                        </div>
+                        <button class="btn-elegant" id="play-btn" disabled>
+                            <svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="progress-bar mb-4">
+                        <div class="progress-fill" id="progress"></div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-[var(--muted)]">
+                        <span id="current-time">0:00</span>
+                        <label class="upload-label btn-elegant text-sm">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span data-translate="chooseFile">Pilih File MP3</span>
+                            <input type="file" id="audio-upload" accept=".mp3,audio/mpeg">
+                        </label>
+                        <span id="duration">0:00</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mt-4">
+                        <input type="checkbox" id="loop-toggle" checked class="w-4 h-4 accent-[var(--accent)]">
+                        <label for="loop-toggle" class="text-sm text-[var(--muted)]" data-translate="loop">Putar Berulang</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Poem Section -->
+        <section class="py-20 px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-card p-8 md:p-12 accent-glow scroll-reveal">
+                    <h2 class="font-display text-3xl md:text-5xl font-bold mb-8 text-center shimmer-text" data-translate="poemTitle">
+                        Untukmu yang Berulang Tahun
+                    </h2>
+                    
+                    <div class="poem-text text-lg md:text-xl leading-relaxed text-[var(--fg)]" id="poem-container">
+                        <!-- Poem will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Pantun Section -->
+        <section class="py-20 px-4">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="font-display text-3xl md:text-5xl font-bold mb-12 text-center text-gradient" data-translate="pantunTitle">
+                    Untukmu yang Berulang Tahun
+                </h2>
+                
+                <div class="grid gap-6" id="pantun-container">
+                    <!-- Pantun cards will be inserted here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="py-12 px-4 text-center">
+            <div class="glass-card max-w-2xl mx-auto p-8">
+                <p class="font-display text-2xl mb-4" data-translate="footerText">
+                    Dengan cinta, dari hati yang paling dalam
+                </p>
+                <p class="text-[var(--muted)] text-sm">
+                    Created with love
+                </p>
+            </div>
+        </footer>
+    </div>
+    
+    <audio id="audio-player" loop></audio>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        
+        // ==================== TRANSLATIONS ====================
+        const translations = {
+            id: {
+                title: "Selamat Ulang Tahun",
+                subtitle: "Sebuah persembahan kata untuk jiwa yang tercinta",
+                nowPlaying: "Sedang Diputar",
+                uploadSong: "Upload Lagu MP3",
+                chooseFile: "Pilih File MP3",
+                loop: "Putar Berulang",
+                poemTitle: "Untukmu yang Berulang Tahun",
+                pantunTitle: "Untukmu yang Berulang Tahun",
+                footerText: "Dengan cinta, dari hati yang paling dalam",
+                poem: `
+                    <p class="poem-line mb-6" style="animation-delay: 0.1s;">Hari ini, langit menari dengan lembut,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.2s;">Menghantarimu ke gerbang waktu yang baru,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.3s;">Setiap detik adalah doa yang terucap,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.4s;">Setiap napas adalah harapan yang tulus.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.5s;">Ingatkah kau akan malam-malam panjang?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.6s;">Ketika rindu menjadi pengantar tidur,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.7s;">Ketika hati bicara dalam bahasa sunyi,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.8s;">Berkata tentang cinta yang tak bertepi.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.9s;">Tahukah kau, bahwa setiap matahari terbit,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.0s;">Adalah surat cinta dari alam semesta?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.1s;">Untukmu, yang senantiasa tersenyum,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.2s;">Meski dunia terkadang meminta lebih.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.3s;">Di hari istimewa ini, izinkan aku,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.4s;">Menyusun kata menjadi mahkota,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.5s;">Yang akan kupakaikan di kepalamu,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.6s;">Sebagai tanda cinta yang tak pernah padam.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.7s;">Kau adalah puisi yang hidup,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.8s;">Yang setiap hari kutulis dalam hati,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.9s;">Dengan tinta rindu yang tak kunjung kering,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.0s;">Dan kanvas waktu yang tak pernah usang.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.1s;">Tahun ini, semoga bahagiamu bertambah,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.2s;">Seperti ombak yang tak henti menghampiri pantai,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.3s;">Semoga impianmu terwujud satu per satu,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.4s;">Sebagaimana bintang yang menabur cahaya.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.5s;">Dan ketika malam tiba membungkam dunia,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.6s;">Ketika kesendirian mencoba menyapa,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.7s;">Ingatlah bahwa di suatu sudut hati ini,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.8s;">Ada cahaya yang selalu menyala untukmu.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.9s;">Selamat ulang tahun, jiwa yang tercinta,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.0s;">Semoga usiamu yang baru ini,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.1s;">Dipenuhi dengan kebahagiaan yang tiada tara,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.2s;">Dan cinta yang mengalir tanpa henti.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 3.3s;">Terima kasih telah hadir dalam hidupku,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.4s;">Terima kasih telah menjadi alasan senyumku,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.5s;">Di setiap pagi yang sunyi,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.6s;">Dan setiap malam yang membisu.</p>
+                `,
+                pantuns: [
+                    {
+                        sampiran: "Buah kelapa buah berangan<br>Di tepi sungai tumbuh melati",
+                        isi: "Hari istimewa telah datang<br>Semoga bahagia selalu berseri"
+                    },
+                    {
+                        sampiran: "Pergi ke pasar membeli mangga<br>Jalan yang ditempuh sangatlah jauh",
+                        isi: "Doa terbaik kupanjatkan sentosa<br>Untukmu yang sangatlah berharga"
+                    },
+                    {
+                        sampiran: "Burung merpati terbang ke angkasa<br>Hinggap di dahan pohon cemara",
+                        isi: "Semoga hidupmu penuh pesona<br>Bahagia dan sukses sepanjang masa"
+                    },
+                    {
+                        sampiran: "Anak ayam turun sepuluh<br>Mati satu tinggal sembilan",
+                        isi: "Usiamu bertambah kurasa<br>Rezeki lancar penuh kebaikan"
+                    }
+                ]
+            },
+            en: {
+                title: "Happy Birthday",
+                subtitle: "A tribute of words for the beloved soul",
+                nowPlaying: "Now Playing",
+                uploadSong: "Upload MP3 Song",
+                chooseFile: "Choose MP3 File",
+                loop: "Loop Playback",
+                poemTitle: "For You on Your Birthday",
+                pantunTitle: "For You on Your Birthday",
+                footerText: "With love, from the deepest heart",
+                poem: `
+                    <p class="poem-line mb-6" style="animation-delay: 0.1s;">Today, the sky dances gently,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.2s;">Escorting you to a new gateway of time,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.3s;">Every second is a prayer spoken,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.4s;">Every breath is a sincere hope.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.5s;">Do you remember the long nights?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.6s;">When longing became a lullaby,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.7s;">When the heart spoke in silence,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.8s;">Speaking of boundless love.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.9s;">Do you know that every sunrise,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.0s;">Is a love letter from the universe?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.1s;">For you, who always smiles,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.2s;">Even when the world asks for more.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.3s;">On this special day, allow me,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.4s;">To weave words into a crown,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.5s;">That I will place upon your head,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.6s;">As a sign of love that never fades.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.7s;">You are a living poem,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.8s;">That I write in my heart every day,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.9s;">With ink of longing that never dries,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.0s;">And a canvas of time that never ages.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.1s;">This year, may your happiness grow,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.2s;">Like waves that never cease to reach the shore,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.3s;">May your dreams come true one by one,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.4s;">Just as stars scatter their light.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.5s;">And when night falls to silence the world,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.6s;">When loneliness tries to visit,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.7s;">Remember that in a corner of this heart,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.8s;">There is a light that always burns for you.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.9s;">Happy birthday, beloved soul,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.0s;">May this new year of yours,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.1s;">Be filled with immeasurable joy,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.2s;">And love that flows endlessly.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 3.3s;">Thank you for being in my life,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.4s;">Thank you for being the reason for my smile,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.5s;">In every quiet morning,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.6s;">And every silent night.</p>
+                `,
+                pantuns: [
+                    {
+                        sampiran: "Coconut fruit, candlenut fruit<br>Jasmine grows by the riverside",
+                        isi: "A special day has arrived<br>May happiness always shine"
+                    },
+                    {
+                        sampiran: "Going to the market to buy mangoes<br>The road taken is very far",
+                        isi: "Best prayers I offer<br>For you who are so precious"
+                    },
+                    {
+                        sampiran: "A dove flies to the sky<br>Perched on a pine tree branch",
+                        isi: "May your life be full of wonder<br>Happy and successful through time"
+                    },
+                    {
+                        sampiran: "Ten little chicks come down<br>One dies, nine remain",
+                        isi: "Your age increases, I feel<br>Smooth fortune full of kindness"
+                    }
+                ]
+            },
+            jp: {
+                title: "お誕生日おめでとう",
+                subtitle: "愛する魂への言葉の捧げもの",
+                nowPlaying: "再生中",
+                uploadSong: "MP3をアップロード",
+                chooseFile: "MP3ファイルを選択",
+                loop: "ループ再生",
+                poemTitle: "誕生日のあなたへ",
+                pantunTitle: "誕生日のあなたへ",
+                footerText: "愛を込めて、心の底から",
+                poem: `
+                    <p class="poem-line mb-6" style="animation-delay: 0.1s;">今日、空は優しく踊る、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.2s;">新しい時間への入り口へあなたを導く、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.3s;">一秒一秒が紡がれる祈り、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.4s;">一息一息が純粋な願い。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.5s;">長い夜を覚えていますか？</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.6s;">憧れが子守唄になった時、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.7s;">心が沈黙の中で語った時、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.8s;">果てしない愛について語った。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.9s;">すべての日の出が</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.0s;">宇宙からのラブレターだと知っていますか？</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.1s;">常に微笑むあなたのために、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.2s;">世界がもっと求めても。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.3s;">この特別な日、許してください、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.4s;">言葉を冠に織り上げることを、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.5s;">あなたの頭に飾るために、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.6s;">決して色褪せない愛の証として。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.7s;">あなたは生きる詩です、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.8s;">毎日心に書く詩、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.9s;">決して乾かない憧れのインクで、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.0s;">決して古びない時間のキャンバスに。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.1s;">今年、あなたの幸福が増しますように、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.2s;">岸に届き続ける波のように、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.3s;">夢が一つずつ叶いますように、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.4s;">星が光を撒くように。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.5s;">夜が世界を静める時、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.6s;">孤独が訪れようとする時、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.7s;">覚えていて、この心の片隅に、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.8s;">あなたのために常に燃える光があることを。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.9s;">お誕生日おめでとう、愛する魂よ、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.0s;">この新しい年が、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.1s;">計り知れない喜びで満たされ、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.2s;">愛が終わりなく流れますように。</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 3.3s;">私の人生にいてくれてありがとう、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.4s;">私の笑顔の理由でいてくれてありがとう、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.5s;">すべての静かな朝に、</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.6s;">すべての沈黙の夜に。</p>
+                `,
+                pantuns: [
+                    {
+                        sampiran: "椰子の実、くるとみの実<br>川辺にジャスミンが咲く",
+                        isi: "特別な日がやってきた<br>幸せがいつも輝きますように"
+                    },
+                    {
+                        sampiran: "市場へマンゴーを買いに<br>道のりはとても遠い",
+                        isi: "最高の祈りを捧げる<br>かけがえのないあなたに"
+                    },
+                    {
+                        sampiran: "鳩が空へ飛び立つ<br>松の枝に止まる",
+                        isi: "あなたの人生が輝きで満ちますように<br>幸せと成功が永遠に"
+                    },
+                    {
+                        sampiran: "十羽のひよこが降りてくる<br>一羽消えて九羽残る",
+                        isi: "年を重ねるあなたに<br>良い運が満ちますように"
+                    }
+                ]
+            },
+            de: {
+                title: "Alles Gute zum Geburtstag",
+                subtitle: "Eine Huldigung der Worte für die geliebte Seele",
+                nowPlaying: "Jetzt läuft",
+                uploadSong: "MP3 hochladen",
+                chooseFile: "MP3-Datei auswählen",
+                loop: "Wiederholen",
+                poemTitle: "Für dich an deinem Geburtstag",
+                pantunTitle: "Für dich an deinem Geburtstag",
+                footerText: "Mit Liebe, aus dem tiefsten Herzen",
+                poem: `
+                    <p class="poem-line mb-6" style="animation-delay: 0.1s;">Heute tanzt der Himmel sanft,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.2s;">Er geleitet dich zu einem neuen Tor der Zeit,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.3s;">Jede Sekunde ist ein gesprochenes Gebet,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.4s;">Jeder Atemzug ist eine aufrichtige Hoffnung.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.5s;">Erinnerst du dich an die langen Nächte?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.6s;">Als Sehnsucht zum Wiegenlied wurde,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.7s;">Als das Herz in der Stille sprach,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 0.8s;">Von grenzenloser Liebe erzählte.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 0.9s;">Weißt du, dass jeder Sonnenaufgang</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.0s;">Ein Liebesbrief vom Universum ist?</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.1s;">Für dich, der immer lächelt,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.2s;">Auch wenn die Welt nach mehr verlangt.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.3s;">An diesem besonderen Tag erlaube mir,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.4s;">Worte zu einer Krone zu weben,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.5s;">Die ich auf dein Haupt setzen werde,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.6s;">Als Zeichen einer Liebe, die nie verblasst.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 1.7s;">Du bist ein lebendiges Gedicht,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.8s;">Das ich jeden Tag in mein Herz schreibe,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 1.9s;">Mit Tinte der Sehnsucht, die nie trocknet,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.0s;">Auf einer Leinwand der Zeit, die nie altert.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.1s;">Dieses Jahr möge dein Glück wachsen,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.2s;">Wie Wellen, die nie aufhören, das Ufer zu erreichen,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.3s;">Mögen deine Träume einer nach dem anderen wahr werden,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.4s;">So wie Sterne ihr Licht verstreuen.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.5s;">Und wenn die Nacht fällt und die Welt verstummt,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.6s;">Wenn Einsamkeit versucht, dich zu besuchen,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.7s;">Erinnere dich, dass in einer Ecke dieses Herzens,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 2.8s;">Ein Licht brennt, das immer für dich leuchtet.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 2.9s;">Alles Gute zum Geburtstag, geliebte Seele,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.0s;">Möge dieses neue Jahr deines Lebens,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.1s;">Mit unermesslicher Freude gefüllt sein,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.2s;">Und Liebe, die endlos fließt.</p>
+                    
+                    <p class="poem-line mb-8 mt-12" style="animation-delay: 3.3s;">Danke, dass du in meinem Leben bist,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.4s;">Danke, dass du der Grund für mein Lächeln bist,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.5s;">In jedem stillen Morgen,</p>
+                    <p class="poem-line mb-6" style="animation-delay: 3.6s;">Und jeder schweigenden Nacht.</p>
+                `,
+                pantuns: [
+                    {
+                        sampiran: "Kokosnuss, Candlenuss<br>Jasmin wächst am Flussufer",
+                        isi: "Ein besonderer Tag ist gekommen<br>Möge das Glück immer strahlen"
+                    },
+                    {
+                        sampiran: "Zum Markt, um Mangos zu kaufen<br>Der Weg ist sehr weit",
+                        isi: "Beste Gebete biete ich an<br>Für dich, der so kostbar bist"
+                    },
+                    {
+                        sampiran: "Eine Taube fliegt zum Himmel<br>Landet auf einem Kiefernzweig",
+                        isi: "Möge dein Leben voller Wunder sein<br>Glücklich und erfolgreich durch die Zeit"
+                    },
+                    {
+                        sampiran: "Zehn Küken kommen herunter<br>Eins stirbt, neun bleiben",
+                        isi: "Dein Alter wächst, ich fühle<br>Gutes Glück voller Güte"
+                    }
+                ]
+            }
+        };
+        
+        let currentLang = 'id';
+        
+        // ==================== DATE & TIME ====================
+        function updateDateTime() {
+            const now = new Date();
+            
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            
+            const localeMap = {
+                id: 'id-ID',
+                en: 'en-US',
+                jp: 'ja-JP',
+                de: 'de-DE'
+            };
+            
+            const locale = localeMap[currentLang] || 'id-ID';
+            
+            document.getElementById('date-display').textContent = now.toLocaleDateString(locale, dateOptions);
+            document.getElementById('time-display').textContent = now.toLocaleTimeString(locale, timeOptions);
+        }
+        
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        
+        // ==================== TRANSLATION ====================
+        function translatePage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (t[key]) {
+                    el.innerHTML = t[key];
+                }
+            });
+            
+            // Update poem
+            document.getElementById('poem-container').innerHTML = t.poem;
+            
+            // Update pantuns
+            renderPantuns(t.pantuns);
+            
+            // Update button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            
+            // Update datetime with new locale
+            updateDateTime();
+        }
+        
+        function renderPantuns(pantuns) {
+            const container = document.getElementById('pantun-container');
+            container.innerHTML = pantuns.map((p, i) => `
+                <div class="glass-card pantun-card p-6 md:p-8 scroll-reveal" style="transition-delay: ${i * 0.15}s;">
+                    <p class="text-[var(--muted)] italic mb-4 text-lg leading-relaxed">${p.sampiran}</p>
+                    <p class="text-[var(--accent)] text-xl md:text-2xl font-display font-semibold leading-relaxed">${p.isi}</p>
+                </div>
+            `).join('');
+            
+            // Trigger scroll reveal
+            setTimeout(observeElements, 100);
+        }
+        
+        // Language buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                translatePage(btn.dataset.lang);
+            });
+        });
+        
+        // Initialize with Indonesian
+        translatePage('id');
+        
+        // ==================== MUSIC PLAYER ====================
+        const audioPlayer = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const visualizer = document.getElementById('visualizer');
+        const progressBar = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const songNameEl = document.getElementById('song-name');
+        const loopToggle = document.getElementById('loop-toggle');
+        const audioUpload = document.getElementById('audio-upload');
+        
+        let isPlaying = false;
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        audioUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                audioPlayer.src = url;
+                songNameEl.textContent = file.name.replace('.mp3', '');
+                playBtn.disabled = false;
+                
+                audioPlayer.addEventListener('loadedmetadata', () => {
+                    durationEl.textContent = formatTime(audioPlayer.duration);
+                }, { once: true });
+            }
+        });
+        
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audioPlayer.pause();
+                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                visualizer.classList.add('paused');
+            } else {
+                audioPlayer.play();
+                playIcon.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+                visualizer.classList.remove('paused');
+            }
+            isPlaying = !isPlaying;
+        });
+        
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            if (!loopToggle.checked) {
+                isPlaying = false;
+                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                visualizer.classList.add('paused');
+            }
+        });
+        
+        loopToggle.addEventListener('change', () => {
+            audioPlayer.loop = loopToggle.checked;
+        });
+        
+        // ==================== THREE.JS 3D SCENE ====================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+        
+        camera.position.z = 50;
+        
+        // Particles
+        const particleCount = 500;
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+        
+        const colorPalette = [
+            new THREE.Color('#e8a857'),
+            new THREE.Color('#d4a5a5'),
+            new THREE.Color('#f5d89a'),
+            new THREE.Color('#ffffff')
+        ];
+        
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+            
+            const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+            
+            sizes[i] = Math.random() * 2 + 0.5;
+        }
+        
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        
+        const particleVertexShader = `
+            attribute float size;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (300.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+        
+        const particleFragmentShader = `
+            varying vec3 vColor;
+            void main() {
+                float dist = length(gl_PointCoord - vec2(0.5));
+                if (dist > 0.5) discard;
+                float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+                gl_FragColor = vec4(vColor, alpha * 0.8);
+            }
+        `;
+        
+        const particleMaterial = new THREE.ShaderMaterial({
+            vertexShader: particleVertexShader,
+            fragmentShader: particleFragmentShader,
+            transparent: true,
+            vertexColors: true,
+            depthWrite: false
+        });
+        
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+        
+        // Floating shapes
+        const shapes = [];
+        const shapeGeometries = [
+            new THREE.IcosahedronGeometry(2, 0),
+            new THREE.OctahedronGeometry(2, 0),
+            new THREE.TetrahedronGeometry(2, 0)
+        ];
+        
+        for (let i = 0; i < 15; i++) {
+            const geometry = shapeGeometries[Math.floor(Math.random() * shapeGeometries.length)];
+            const material = new THREE.MeshBasicMaterial({
+                color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+                wireframe: true,
+                transparent: true,
+                opacity: 0.4
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 40
+            );
+            mesh.userData = {
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.02,
+                    y: (Math.random() - 0.5) * 0.02
+                },
+                floatSpeed: Math.random() * 0.01 + 0.005,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+            
+            shapes.push(mesh);
+            scene.add(mesh);
+        }
+        
+        // Animation
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Rotate particles
+            particles.rotation.y += 0.0005;
+            particles.rotation.x += 0.0002;
+            
+            // Animate shapes
+            shapes.forEach((shape, i) => {
+                shape.rotation.x += shape.userData.rotationSpeed.x;
+                shape.rotation.y += shape.userData.rotationSpeed.y;
+                shape.position.y += Math.sin(time + shape.userData.floatOffset) * shape.userData.floatSpeed;
+            });
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // ==================== SCROLL REVEAL ====================
+        function observeElements() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+        }
+        
+        observeElements();
+        
+        // ==================== MOUSE PARALLAX ====================
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 2;
+            const y = (e.clientY / window.innerHeight - 0.5) * 2;
+            
+            camera.position.x = x * 5;
+            camera.position.y = y * 5;
+            camera.lookAt(0, 0, 0);
+        });
+    </script>
+</body>
+</html>
